@@ -7,19 +7,12 @@ import androidx.fragment.app.viewModels
 import com.antsfamily.restafinder.R
 import com.antsfamily.restafinder.databinding.FragmentHomeBinding
 import com.antsfamily.restafinder.presentation.HomeViewModel
-import com.antsfamily.restafinder.presentation.ViewModelFactory
-import com.antsfamily.restafinder.presentation.withFactory
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
-
 
 @AndroidEntryPoint
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
-    @Inject
-    lateinit var viewModelFactory: ViewModelFactory
-
-    private val viewModel: HomeViewModel by viewModels { withFactory(viewModelFactory) }
+    private val viewModel: HomeViewModel by viewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

@@ -1,7 +1,9 @@
 package com.antsfamily.restafinder.presentation
 
+import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
+@HiltViewModel
 class HomeViewModel @Inject constructor() : StatefulViewModel<HomeViewModel.State>(State()) {
 
     data class State(
