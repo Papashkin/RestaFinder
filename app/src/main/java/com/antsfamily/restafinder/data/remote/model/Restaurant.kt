@@ -5,13 +5,11 @@ import com.google.gson.annotations.SerializedName
 data class Restaurant(
     val id: IdValue,
     val address: String,
-    val city: String,
-    val country: String,
-    @SerializedName("mainimage")
-    val mainImage: String,
+    @SerializedName("listimage")
+    val image: String,
     val name: List<RestaurantValue>,
+    @SerializedName("short_description")
     val description: List<RestaurantValue>,
-    val phone: String,
 )
 
 data class RestaurantValue(

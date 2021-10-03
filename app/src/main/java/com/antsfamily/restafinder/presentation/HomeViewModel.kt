@@ -18,11 +18,12 @@ class HomeViewModel @Inject constructor(
     data class State(
         val isStartLoadingVisible: Boolean = true,
         val isErrorVisible: Boolean = false,
-        val isNetworkErrorVisible: Boolean = false,
         val restaurants: List<Restaurant> = emptyList(),
         val isRestaurantsVisible: Boolean = false,
         val isFetchLoadingVisible: Boolean = false,
     )
+
+    private var coordinates: Coordinates? = null
 
     init {
         getCoordinates()
@@ -32,10 +33,20 @@ class HomeViewModel @Inject constructor(
         //TODO
     }
 
+    fun onRetryButtonClick() {
+        coordinates?.let {
+            showStartLoading()
+            getRestaurants(it)
+        }
+    }
+
     private fun getCoordinates() {
         getCoordinatesUseCase(
             params = Unit,
-            onResult = ::getRestaurants,
+            onResult = {
+                coordinates = it
+                getRestaurants(it)
+            },
             onError = ::handleErrorResult
         )
     }
@@ -61,16 +72,33 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun handleErrorResult(exception: Exception) {
-        if (!isDataAlreadyReceived()) {
-            changeState {
-                it.copy(
-                    isErrorVisible = true,
-                    isStartLoadingVisible = false,
-                    isFetchLoadingVisible = false,
-                    isRestaurantsVisible = false,
-                )
-            }
+        changeState {
+            it.copy(
+                isErrorVisible = !isDataAlreadyReceived(),
+                isStartLoadingVisible = false,
+                isFetchLoadingVisible = false,
+                isRestaurantsVisible = false,
+            )
         }
+    }
+
+    private fun showStartLoading() {
+        changeState {
+            it.copy(
+                isStartLoadingVisible = true,
+                isFetchLoadingVisible = false,
+                isRestaurantsVisible = false,
+                isErrorVisible = false
+            )
+        }
+    }
+
+    private fun showFetchLoading() {
+        changeState { it.copy(isFetchLoadingVisible = true) }
+    }
+
+    private fun hideFetchLoading() {
+        changeState { it.copy(isFetchLoadingVisible = false) }
     }
 
     private fun isDataAlreadyReceived(): Boolean =
