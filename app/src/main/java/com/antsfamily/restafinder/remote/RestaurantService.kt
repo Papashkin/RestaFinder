@@ -1,6 +1,6 @@
 package com.antsfamily.restafinder.remote
 
-import com.antsfamily.restafinder.data.remote.RestaurantsList
+import com.antsfamily.restafinder.data.remote.model.RestaurantsList
 import retrofit2.http.GET
 import retrofit2.http.Query
 
