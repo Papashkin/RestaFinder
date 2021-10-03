@@ -26,10 +26,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
     }
 
-//    override fun onResume() {
-//        super.onResume()
-//        viewModel.onResume()
-//    }
+    override fun onResume() {
+        super.onResume()
+        viewModel.onResume()
+    }
 
     private fun observeState(binding: FragmentHomeBinding) {
         with(binding) {

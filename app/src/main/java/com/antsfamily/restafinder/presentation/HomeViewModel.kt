@@ -1,18 +1,22 @@
 package com.antsfamily.restafinder.presentation
 
+import androidx.lifecycle.viewModelScope
 import com.antsfamily.restafinder.data.local.model.Coordinates
 import com.antsfamily.restafinder.data.remote.model.Restaurant
 import com.antsfamily.restafinder.data.remote.model.RestaurantsList
+import com.antsfamily.restafinder.domain.usecase.DataFetchingTimerFlow
 import com.antsfamily.restafinder.domain.usecase.GetCoordinatesUseCase
 import com.antsfamily.restafinder.domain.usecase.GetRestaurantsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.lang.Exception
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getCoordinatesUseCase: GetCoordinatesUseCase,
     private val getRestaurantsUseCase: GetRestaurantsUseCase,
+    private val timerFlow: DataFetchingTimerFlow,
 ) : StatefulViewModel<HomeViewModel.State>(State()) {
 
     data class State(
@@ -24,13 +28,13 @@ class HomeViewModel @Inject constructor(
     )
 
     private var coordinates: Coordinates? = null
+    private var isTimerStarted: Boolean = false
 
-    init {
-        getCoordinates()
-    }
+    private val isDataAlreadyReceived: Boolean
+        get() = state.value?.restaurants?.isEmpty() == false
 
     fun onResume() {
-        //TODO
+        getCoordinates()
     }
 
     fun onRetryButtonClick() {
@@ -69,17 +73,29 @@ class HomeViewModel @Inject constructor(
                 isErrorVisible = false
             )
         }
+        if (!isTimerStarted) {
+            launchFetchingTimer()
+            isTimerStarted = true
+        }
     }
 
     private fun handleErrorResult(exception: Exception) {
         changeState {
             it.copy(
-                isErrorVisible = !isDataAlreadyReceived(),
+                isErrorVisible = !isDataAlreadyReceived,
                 isStartLoadingVisible = false,
                 isFetchLoadingVisible = false,
-                isRestaurantsVisible = false,
+                isRestaurantsVisible = isDataAlreadyReceived,
             )
         }
+    }
+
+    private fun launchFetchingTimer() = viewModelScope.launch {
+        timerFlow(DataFetchingTimerFlow.Params(DELAY_SECONDS, INIT_DELAY_SECONDS))
+            .collect {
+                showFetchLoading()
+                getCoordinates()
+            }
     }
 
     private fun showStartLoading() {
@@ -97,14 +113,9 @@ class HomeViewModel @Inject constructor(
         changeState { it.copy(isFetchLoadingVisible = true) }
     }
 
-    private fun hideFetchLoading() {
-        changeState { it.copy(isFetchLoadingVisible = false) }
-    }
-
-    private fun isDataAlreadyReceived(): Boolean =
-        state.value?.restaurants?.isEmpty() == false
-
     companion object {
         private const val RESTAURANTS_LIST_SIZE = 15
+        private const val DELAY_SECONDS = 10000L
+        private const val INIT_DELAY_SECONDS = 10000L
     }
 }
