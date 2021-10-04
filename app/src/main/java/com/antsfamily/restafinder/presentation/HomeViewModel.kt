@@ -10,6 +10,9 @@ import com.antsfamily.restafinder.data.remote.model.RestaurantsList
 import com.antsfamily.restafinder.domain.usecase.*
 import com.antsfamily.restafinder.utils.noop
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -20,7 +23,7 @@ class HomeViewModel @Inject constructor(
     private val getRestaurantsUseCase: GetRestaurantsUseCase,
     private val getFavouriteRestaurantsIdsUseCase: GetFavouriteRestaurantsIdsUseCase,
     private val setFavouriteRestaurantsIdsUseCase: SetFavouriteRestaurantsIdsUseCase,
-    private val timerFlow: DataFetchingTimerFlow
+    private val timer: DataFetchingTimer
 ) : StatefulViewModel<HomeViewModel.State>(State()) {
 
     data class State(
@@ -36,17 +39,25 @@ class HomeViewModel @Inject constructor(
         get() = _showSnackBar
 
     private var coordinates: Coordinates? = null
+    private var timerJob: Job? = null
     private var isTimerStarted: Boolean = false
     private var favouriteRestaurantsIds: List<String> = emptyList()
 
     private val isDataAlreadyReceived: Boolean
         get() = state.value?.restaurants?.isEmpty() == false
 
-    fun onResume() {
+    init {
         getFavouriteRestaurantsIds()
     }
 
+    fun onResume() {
+        getCoordinates()
+    }
+
     fun onPause() {
+        timerJob?.cancel()
+        timerJob = null
+        isTimerStarted = false
         setFavouriteRestaurantsIds()
     }
 
@@ -82,7 +93,7 @@ class HomeViewModel @Inject constructor(
         changeState {
             it.copy(
                 restaurants = it.restaurants.map { item ->
-                    item.copy(isFavourite = if (item.id == id) false else item.isFavourite )
+                    item.copy(isFavourite = if (item.id == id) false else item.isFavourite)
                 }
             )
         }
@@ -92,7 +103,6 @@ class HomeViewModel @Inject constructor(
     private fun getFavouriteRestaurantsIds() {
         getFavouriteRestaurantsIdsUseCase(Unit, {
             favouriteRestaurantsIds = it
-            getCoordinates()
         }, {
             noop()
         })
@@ -145,7 +155,7 @@ class HomeViewModel @Inject constructor(
                 name = it.name.firstOrNull()?.value.orEmpty(),
                 description = it.description.firstOrNull()?.value.orEmpty(),
                 image = it.image,
-                isFavourite = favouriteRestaurantsIds.contains(it.id.id) // it.favourite
+                isFavourite = favouriteRestaurantsIds.contains(it.id.id)
             )
         }
 
@@ -160,12 +170,16 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun launchFetchingTimer() = viewModelScope.launch {
-        timerFlow(DataFetchingTimerFlow.Params(DELAY_SECONDS, INIT_DELAY_SECONDS))
-            .collect {
-                showFetchLoading()
-                getCoordinates()
-            }
+    private fun launchFetchingTimer() {
+        timerJob = viewModelScope.launch {
+            timer.run(DataFetchingTimer.Params(DELAY_SECONDS, INIT_DELAY_SECONDS))
+                .cancellable()
+                .collect {
+                    viewModelScope.ensureActive()
+                    showFetchLoading()
+                    getCoordinates()
+                }
+        }
     }
 
     private fun showStartLoading() {

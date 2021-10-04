@@ -1,5 +1,6 @@
 package com.antsfamily.restafinder.di
 
+import com.antsfamily.restafinder.domain.usecase.DataFetchingTimer
 import com.antsfamily.restafinder.remote.ApiConfig
 import com.antsfamily.restafinder.remote.RestaurantService
 import dagger.Module
@@ -30,4 +31,8 @@ class AppModule {
 
         return retrofit.create(RestaurantService::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideDataFetchingTimer(): DataFetchingTimer = DataFetchingTimer()
 }
