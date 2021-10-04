@@ -10,6 +10,7 @@ data class Restaurant(
     val name: List<RestaurantValue>,
     @SerializedName("short_description")
     val description: List<RestaurantValue>,
+    val favourite: Boolean
 )
 
 data class RestaurantValue(

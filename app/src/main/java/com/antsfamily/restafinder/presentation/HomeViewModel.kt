@@ -1,12 +1,14 @@
 package com.antsfamily.restafinder.presentation
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.antsfamily.restafinder.data.local.model.Coordinates
+import com.antsfamily.restafinder.data.local.model.RestaurantItem
 import com.antsfamily.restafinder.data.remote.model.Restaurant
 import com.antsfamily.restafinder.data.remote.model.RestaurantsList
-import com.antsfamily.restafinder.domain.usecase.DataFetchingTimerFlow
-import com.antsfamily.restafinder.domain.usecase.GetCoordinatesUseCase
-import com.antsfamily.restafinder.domain.usecase.GetRestaurantsUseCase
+import com.antsfamily.restafinder.domain.usecase.*
+import com.antsfamily.restafinder.utils.noop
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -16,25 +18,36 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getCoordinatesUseCase: GetCoordinatesUseCase,
     private val getRestaurantsUseCase: GetRestaurantsUseCase,
-    private val timerFlow: DataFetchingTimerFlow,
+    private val getFavouriteRestaurantsIdsUseCase: GetFavouriteRestaurantsIdsUseCase,
+    private val setFavouriteRestaurantsIdsUseCase: SetFavouriteRestaurantsIdsUseCase,
+    private val timerFlow: DataFetchingTimerFlow
 ) : StatefulViewModel<HomeViewModel.State>(State()) {
 
     data class State(
         val isStartLoadingVisible: Boolean = true,
         val isErrorVisible: Boolean = false,
-        val restaurants: List<Restaurant> = emptyList(),
+        val restaurants: List<RestaurantItem> = emptyList(),
         val isRestaurantsVisible: Boolean = false,
         val isFetchLoadingVisible: Boolean = false,
     )
 
+    private val _showSnackBar = MutableLiveData<Event<TextResource>>()
+    val showSnackBar: LiveData<Event<TextResource>>
+        get() = _showSnackBar
+
     private var coordinates: Coordinates? = null
     private var isTimerStarted: Boolean = false
+    private var favouriteRestaurantsIds: List<String> = emptyList()
 
     private val isDataAlreadyReceived: Boolean
         get() = state.value?.restaurants?.isEmpty() == false
 
     fun onResume() {
-        getCoordinates()
+        getFavouriteRestaurantsIds()
+    }
+
+    fun onPause() {
+        setFavouriteRestaurantsIds()
     }
 
     fun onRetryButtonClick() {
@@ -42,6 +55,51 @@ class HomeViewModel @Inject constructor(
             showStartLoading()
             getRestaurants(it)
         }
+    }
+
+    fun onFavouriteIconClick(item: RestaurantItem) {
+        if (favouriteRestaurantsIds.contains(item.id)) {
+            removeFromFavourites(item.id)
+        } else {
+            addToFavourites(item.id)
+        }
+    }
+
+    private fun addToFavourites(id: String) {
+        favouriteRestaurantsIds = favouriteRestaurantsIds.plus(id)
+        changeState {
+            it.copy(
+                restaurants = it.restaurants.map { item ->
+                    item.copy(isFavourite = if (item.id == id) true else item.isFavourite)
+                }
+            )
+        }
+        _showSnackBar.postValue(Event(TextResource.RESTAURANT_ADD_TO_FAVOURITES))
+    }
+
+    private fun removeFromFavourites(id: String) {
+        favouriteRestaurantsIds = favouriteRestaurantsIds.minus(id)
+        changeState {
+            it.copy(
+                restaurants = it.restaurants.map { item ->
+                    item.copy(isFavourite = if (item.id == id) false else item.isFavourite )
+                }
+            )
+        }
+        _showSnackBar.postValue(Event(TextResource.RESTAURANT_REMOVE_FROM_FAVOURITES))
+    }
+
+    private fun getFavouriteRestaurantsIds() {
+        getFavouriteRestaurantsIdsUseCase(Unit, {
+            favouriteRestaurantsIds = it
+            getCoordinates()
+        }, {
+            noop()
+        })
+    }
+
+    private fun setFavouriteRestaurantsIds() {
+        setFavouriteRestaurantsIdsUseCase(favouriteRestaurantsIds, ::noop, ::noop)
     }
 
     private fun getCoordinates() {
@@ -69,7 +127,7 @@ class HomeViewModel @Inject constructor(
                 isStartLoadingVisible = false,
                 isFetchLoadingVisible = false,
                 isRestaurantsVisible = true,
-                restaurants = result.results.take(RESTAURANTS_LIST_SIZE),
+                restaurants = getRestaurantItems(result.results),
                 isErrorVisible = false
             )
         }
@@ -78,6 +136,18 @@ class HomeViewModel @Inject constructor(
             isTimerStarted = true
         }
     }
+
+    private fun getRestaurantItems(data: List<Restaurant>): List<RestaurantItem> =
+        data.take(RESTAURANTS_LIST_SIZE).map {
+            RestaurantItem(
+                id = it.id.id,
+                address = it.address,
+                name = it.name.firstOrNull()?.value.orEmpty(),
+                description = it.description.firstOrNull()?.value.orEmpty(),
+                image = it.image,
+                isFavourite = favouriteRestaurantsIds.contains(it.id.id) // it.favourite
+            )
+        }
 
     private fun handleErrorResult(exception: Exception) {
         changeState {

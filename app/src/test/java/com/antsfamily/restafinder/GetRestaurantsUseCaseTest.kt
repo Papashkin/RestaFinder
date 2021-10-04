@@ -72,6 +72,7 @@ class GetRestaurantsUseCaseTest {
                     "mock_URL_1",
                     listOf(RestaurantValue("en", "MockBar 1")),
                     listOf(RestaurantValue("en", "description of the MockBar 1")),
+                    false
                 ),
                 Restaurant(
                     IdValue("2"),
@@ -79,6 +80,7 @@ class GetRestaurantsUseCaseTest {
                     "mock_URL_2",
                     listOf(RestaurantValue("en", "MockBar 2")),
                     listOf(RestaurantValue("en", "description of the MockBar 2")),
+                    false
                 )
             )
         )
