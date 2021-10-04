@@ -47,11 +47,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun observeState(binding: FragmentHomeBinding) {
         with(binding) {
             viewModel.state.mapDistinct { it.isStartLoadingVisible }
-                .observe(viewLifecycleOwner) { startLoading.isVisible = it }
+                .observe(viewLifecycleOwner) { startLoading.container.isVisible = it }
             viewModel.state.mapDistinct { it.isErrorVisible }
-                .observe(viewLifecycleOwner) { errorWithRetryContent.isVisible = it }
+                .observe(viewLifecycleOwner) { fullscreenErrorView.container.isVisible = it }
             viewModel.state.mapDistinct { it.isFetchLoadingVisible }
-                .observe(viewLifecycleOwner) { fetchLoading.isVisible = it }
+                .observe(viewLifecycleOwner) { fetchLoading.container.isVisible = it }
             viewModel.state.mapDistinct { it.isRestaurantsVisible }
                 .observe(viewLifecycleOwner) { restaurantsRv.isVisible = it }
             viewModel.state.mapDistinct { it.restaurants }
@@ -67,7 +67,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private fun bindInteractions(binding: FragmentHomeBinding) {
         with(binding) {
-            errorRetryBtn.setOnClickListener { viewModel.onRetryButtonClick() }
+            fullscreenErrorView.errorRetryBtn.setOnClickListener { viewModel.onRetryButtonClick() }
             restaurantsRv.adapter = adapter.apply {
                 setOnFavouriteIconClickListener { viewModel.onFavouriteIconClick(it) }
             }

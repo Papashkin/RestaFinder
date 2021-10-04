@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="TextAppearance">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <!-- Header text styles -->
+    <style name="TextAppearance.Title">
+        <item name="android:textSize">@dimen/text_size_title</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Body text styles -->
+    <style name="TextAppearance.Body1">
+        <item name="android:textSize">@dimen/text_size_body1</item>
+    </style>
+
+    <style name="TextAppearance.Body2">
+        <item name="android:textSize">@dimen/text_size_body2</item>
+    </style>
+
+    <style name="TextAppearance.Body4">
+        <item name="android:textSize">@dimen/text_size_body4</item>
+    </style>
+</resources>
