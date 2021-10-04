@@ -20,83 +20,19 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <FrameLayout
+    <include
         android:id="@+id/start_loading"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#ffffff"
-        tools:visibility="gone">
+        layout="@layout/view_start_loading"
+        tools:visibility="gone" />
 
-        <ProgressBar
-            android:layout_width="128dp"
-            android:layout_height="128dp"
-            android:layout_gravity="center"
-            android:indeterminate="true" />
-
-    </FrameLayout>
-
-    <FrameLayout
+    <include
         android:id="@+id/fetch_loading"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:alpha="0.6"
-        android:background="#ffffff"
-        android:clickable="true"
-        android:focusable="true"
-        tools:visibility="visible">
+        layout="@layout/view_fetch_loading"
+        tools:visibility="gone" />
 
-        <ProgressBar
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_gravity="center"
-            android:indeterminate="true" />
-
-    </FrameLayout>
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/error_with_retry_content"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#ffffff"
-        tools:visibility="gone">
-
-        <ImageView
-            android:id="@+id/error_iv"
-            android:layout_width="128dp"
-            android:layout_height="128dp"
-            android:src="@drawable/ic_face_sad"
-            app:layout_constraintBottom_toTopOf="@id/error_description_tv"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_chainStyle="packed"
-            tools:ignore="ContentDescription" />
-
-        <TextView
-            android:id="@+id/error_description_tv"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="64dp"
-            android:layout_marginTop="16dp"
-            android:gravity="center"
-            android:text="Something went wrong :(\n Please try again"
-            app:layout_constraintBottom_toTopOf="@id/error_retry_btn"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/error_iv" />
-
-        <Button
-            android:id="@+id/error_retry_btn"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="64dp"
-            android:layout_marginTop="16dp"
-            android:text="retry"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/error_description_tv" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    <include
+        android:id="@+id/fullscreen_error_view"
+        layout="@layout/view_fullscreen_error"
+        tools:visibility="gone" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
