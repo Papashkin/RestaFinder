@@ -9,10 +9,11 @@ This is an app that helps you to find restaurants nearby
 1. MVVM with stateful viewModels;
 2. Dagger Hilt;
 3. Retrofit;
-4. Kotlin coroutines for concurrency;
-5. Mockito for Unit-tests.
+4. GitHub Actions;
+5. Kotlin coroutines for concurrency;
+6. Mockito for Unit-tests.
 
-### Potential improvements
+### Potential improvements:
 1. Unit tests;
 2. Location provider;
 3. Error handling.
