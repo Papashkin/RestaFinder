@@ -58,6 +58,7 @@ class HomeViewModelTest {
             assert(it.getContentIfNotHandled() == TextResource.RESTAURANT_ADD_TO_FAVOURITES)
         }
     }
+
     @Test
     fun `remove from favourites`() = testCoroutineRule.runBlockingTest {
 
