@@ -1,6 +1,5 @@
 package com.antsfamily.restafinder
 
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.antsfamily.restafinder.data.DataRepository
 import com.antsfamily.restafinder.data.DataRepositoryImpl
 import com.antsfamily.restafinder.data.local.LocalSource
@@ -25,9 +24,6 @@ import org.mockito.junit.MockitoJUnitRunner
 class DataRepositoryTest {
 
     @get:Rule
-    var instantExecutorRule = InstantTaskExecutorRule()
-
-    @get:Rule
     var testCoroutineRule = TestCoroutineRule()
 
     @Mock
@@ -36,7 +32,6 @@ class DataRepositoryTest {
     @Mock
     private lateinit var remoteSource: RemoteSource
 
-    @Mock
     private lateinit var repository: DataRepository
 
     @Before
