@@ -1,12 +1,12 @@
 package com.antsfamily.restafinder
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import com.antsfamily.restafinder.data.DataRepository
 import com.antsfamily.restafinder.data.local.model.Coordinates
-import com.antsfamily.restafinder.data.remote.model.IdValue
-import com.antsfamily.restafinder.data.remote.model.Restaurant
-import com.antsfamily.restafinder.data.remote.model.RestaurantValue
-import com.antsfamily.restafinder.data.remote.model.RestaurantsList
-import com.antsfamily.restafinder.domain.repository.ContentRepository
+import com.antsfamily.restafinder.domain.entity.IdValue
+import com.antsfamily.restafinder.domain.entity.Restaurant
+import com.antsfamily.restafinder.domain.entity.RestaurantValue
+import com.antsfamily.restafinder.domain.entity.Restaurants
 import com.antsfamily.restafinder.domain.usecase.GetRestaurantsUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Before
@@ -29,14 +29,14 @@ class GetRestaurantsUseCaseTest {
     var testCoroutineRule = TestCoroutineRule()
 
     @Mock
-    private lateinit var repository: ContentRepository
+    private lateinit var repository: DataRepository
 
     @Mock
     private lateinit var getRestaurantsUseCase: GetRestaurantsUseCase
 
     @Before
     fun setup() {
-        repository = mock(ContentRepository::class.java)
+        repository = mock(DataRepository::class.java)
         getRestaurantsUseCase = GetRestaurantsUseCase(repository)
     }
 
@@ -51,7 +51,7 @@ class GetRestaurantsUseCaseTest {
     @Test
     fun `get empty list of restaurants`() = testCoroutineRule.runBlockingTest {
         `when`(repository.getRestaurants(MOCK_COORDINATES.latitude, MOCK_COORDINATES.longitude))
-            .thenReturn(RestaurantsList(emptyList()))
+            .thenReturn(Restaurants(emptyList()))
         val restaurants = getRestaurantsUseCase.run(MOCK_COORDINATES)
         assert(restaurants.results.isEmpty())
     }
@@ -64,7 +64,7 @@ class GetRestaurantsUseCaseTest {
     }
 
     companion object {
-        private val MOCK_RESTAURANTS_LIST = RestaurantsList(
+        private val MOCK_RESTAURANTS_LIST = Restaurants(
             results = listOf(
                 Restaurant(
                     IdValue("1"),

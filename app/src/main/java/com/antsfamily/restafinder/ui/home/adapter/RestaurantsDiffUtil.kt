@@ -2,7 +2,7 @@ package com.antsfamily.restafinder.ui.home.adapter
 
 import android.os.Bundle
 import androidx.recyclerview.widget.DiffUtil
-import com.antsfamily.restafinder.data.local.model.RestaurantItem
+import com.antsfamily.restafinder.presentation.home.model.RestaurantItem
 
 class RestaurantsDiffUtil : DiffUtil.ItemCallback<RestaurantItem>() {
     override fun areContentsTheSame(oldItem: RestaurantItem, newItem: RestaurantItem): Boolean {

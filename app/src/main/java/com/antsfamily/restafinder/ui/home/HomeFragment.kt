@@ -8,7 +8,7 @@ import androidx.fragment.app.viewModels
 import com.antsfamily.restafinder.R
 import com.antsfamily.restafinder.databinding.FragmentHomeBinding
 import com.antsfamily.restafinder.presentation.EventObserver
-import com.antsfamily.restafinder.presentation.HomeViewModel
+import com.antsfamily.restafinder.presentation.home.HomeViewModel
 import com.antsfamily.restafinder.presentation.TextResource
 import com.antsfamily.restafinder.ui.common.resourceId
 import com.antsfamily.restafinder.ui.home.adapter.RestaurantsAdapter

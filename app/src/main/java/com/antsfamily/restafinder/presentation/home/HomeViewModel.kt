@@ -1,14 +1,16 @@
-package com.antsfamily.restafinder.presentation
+package com.antsfamily.restafinder.presentation.home
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.antsfamily.restafinder.data.local.model.Coordinates
-import com.antsfamily.restafinder.data.local.model.RestaurantItem
-import com.antsfamily.restafinder.data.remote.model.Restaurant
-import com.antsfamily.restafinder.data.remote.model.RestaurantsList
+import com.antsfamily.restafinder.presentation.home.model.RestaurantItem
+import com.antsfamily.restafinder.domain.entity.Restaurant
+import com.antsfamily.restafinder.domain.entity.Restaurants
 import com.antsfamily.restafinder.domain.usecase.*
-import com.antsfamily.restafinder.utils.noop
+import com.antsfamily.restafinder.presentation.Event
+import com.antsfamily.restafinder.presentation.StatefulViewModel
+import com.antsfamily.restafinder.presentation.TextResource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
@@ -104,12 +106,16 @@ class HomeViewModel @Inject constructor(
         getFavouriteRestaurantsIdsUseCase(Unit, {
             favouriteRestaurantsIds = it
         }, {
-            noop()
+            // no-op
         })
     }
 
     private fun setFavouriteRestaurantsIds() {
-        setFavouriteRestaurantsIdsUseCase(favouriteRestaurantsIds, ::noop, ::noop)
+        setFavouriteRestaurantsIdsUseCase(favouriteRestaurantsIds, {
+            // no-op
+        }, {
+            // no-op
+        })
     }
 
     private fun getCoordinates() {
@@ -131,7 +137,7 @@ class HomeViewModel @Inject constructor(
         )
     }
 
-    private fun handleGetRestaurantsSuccessResult(result: RestaurantsList) {
+    private fun handleGetRestaurantsSuccessResult(result: Restaurants) {
         changeState {
             it.copy(
                 isStartLoadingVisible = false,

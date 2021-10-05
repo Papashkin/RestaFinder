@@ -1,11 +1,11 @@
 package com.antsfamily.restafinder.domain.usecase
 
+import com.antsfamily.restafinder.data.DataRepository
 import com.antsfamily.restafinder.domain.base.BaseUseCase
-import com.antsfamily.restafinder.domain.repository.ContentRepository
 import javax.inject.Inject
 
 class SetFavouriteRestaurantsIdsUseCase @Inject constructor(
-    private val repository: ContentRepository
+    private val repository: DataRepository
 ) : BaseUseCase<List<String>, Unit>() {
 
     override suspend fun run(params: List<String>) = repository.setFavouriteRestaurantIds(params)
