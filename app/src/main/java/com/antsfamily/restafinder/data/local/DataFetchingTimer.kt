@@ -1,4 +1,4 @@
-package com.antsfamily.restafinder.domain.usecase
+package com.antsfamily.restafinder.data.local
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
