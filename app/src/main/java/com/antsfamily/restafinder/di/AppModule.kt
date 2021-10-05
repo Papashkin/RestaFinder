@@ -1,9 +1,8 @@
 package com.antsfamily.restafinder.di
 
 import android.content.Context
-import com.antsfamily.restafinder.data.local.SharedPrefs
 import com.antsfamily.restafinder.data.local.CoordinatesProvider
-import com.antsfamily.restafinder.data.local.DataFetchingTimer
+import com.antsfamily.restafinder.data.local.SharedPrefs
 import com.antsfamily.restafinder.data.remote.ApiConfig
 import com.antsfamily.restafinder.data.remote.RestaurantService
 import dagger.Module
@@ -35,10 +34,6 @@ class AppModule {
 
         return retrofit.create(RestaurantService::class.java)
     }
-
-    @Provides
-    @Singleton
-    fun provideDataFetchingTimer(): DataFetchingTimer = DataFetchingTimer()
 
     @Provides
     @Singleton

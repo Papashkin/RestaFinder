@@ -3,12 +3,6 @@ package com.antsfamily.restafinder
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.antsfamily.restafinder.data.DataRepository
 import com.antsfamily.restafinder.data.local.CoordinatesProvider
-import com.antsfamily.restafinder.data.local.DataFetchingTimer
-import com.antsfamily.restafinder.data.local.model.Coordinates
-import com.antsfamily.restafinder.domain.entity.IdValue
-import com.antsfamily.restafinder.domain.entity.Restaurant
-import com.antsfamily.restafinder.domain.entity.RestaurantValue
-import com.antsfamily.restafinder.domain.entity.Restaurants
 import com.antsfamily.restafinder.presentation.TextResource
 import com.antsfamily.restafinder.presentation.home.HomeViewModel
 import com.antsfamily.restafinder.presentation.home.model.RestaurantItem
@@ -35,9 +29,6 @@ class HomeViewModelTest {
     private val repository: DataRepository = Mockito.mock(DataRepository::class.java)
 
     @Mock
-    private val timer: DataFetchingTimer = Mockito.mock(DataFetchingTimer::class.java)
-
-    @Mock
     private val provider: CoordinatesProvider = Mockito.mock(CoordinatesProvider::class.java)
 
     private lateinit var viewModel: HomeViewModel
@@ -47,7 +38,7 @@ class HomeViewModelTest {
         Mockito.`when`(repository.getFavouriteRestaurantIds())
             .thenReturn(MOCK_FAVOURITE_RESTAURANT_IDS)
 
-        viewModel = HomeViewModel(provider, repository, timer)
+        viewModel = HomeViewModel(provider, repository)
     }
 
     @Test
@@ -67,6 +58,7 @@ class HomeViewModelTest {
             assert(it.getContentIfNotHandled() == TextResource.RESTAURANT_ADD_TO_FAVOURITES)
         }
     }
+
     @Test
     fun `remove from favourites`() = testCoroutineRule.runBlockingTest {
 
@@ -85,50 +77,7 @@ class HomeViewModelTest {
         }
     }
 
-
-    @Test
-    fun `on Resume`() = testCoroutineRule.runBlockingTest {
-        Mockito.`when`(provider.getCoordinates()).thenReturn(MOCK_COORDINATES)
-        Mockito.`when`(repository.getRestaurants(MOCK_COORDINATES))
-            .thenReturn(MOCK_RESTAURANTS_LIST)
-
-        viewModel.onResume()
-        viewModel.onPause()
-        viewModel.state.observeForever {
-            assert(it.restaurants.size == MOCK_RESTAURANTS_LIST.results.size)
-        }
-    }
-
     companion object {
         private val MOCK_FAVOURITE_RESTAURANT_IDS = listOf("mock1", "mock2")
-        private val MOCK_RESTAURANTS_LIST = Restaurants(
-            results = listOf(
-                Restaurant(
-                    IdValue("mock1"),
-                    "Helsinki 1",
-                    "mock_URL_1",
-                    listOf(RestaurantValue("en", "MockBar 1")),
-                    listOf(RestaurantValue("en", "description of the MockBar 1")),
-                    false
-                ),
-                Restaurant(
-                    IdValue("mock2"),
-                    "Helsinki 2",
-                    "mock_URL_2",
-                    listOf(RestaurantValue("en", "MockBar 2")),
-                    listOf(RestaurantValue("en", "description of the MockBar 2")),
-                    false
-                ),
-                Restaurant(
-                    IdValue("mock3"),
-                    "Helsinki 3",
-                    "mock_URL_3",
-                    listOf(RestaurantValue("en", "MockBar 3")),
-                    listOf(RestaurantValue("en", "description of the MockBar 3")),
-                    false
-                ),
-            )
-        )
-        private val MOCK_COORDINATES = Coordinates(2.22, 3.33)
     }
 }
