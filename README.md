@@ -11,3 +11,8 @@ This is an app that helps you to find restaurants nearby
 3. Retrofit;
 4. Kotlin coroutines for concurrency;
 5. Mockito for Unit-tests.
+
+### Potential improvements
+1. Unit tests;
+2. Location provider;
+3. Error handling.
