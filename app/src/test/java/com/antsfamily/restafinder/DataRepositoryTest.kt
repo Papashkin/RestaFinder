@@ -2,12 +2,14 @@ package com.antsfamily.restafinder
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.antsfamily.restafinder.data.DataRepository
+import com.antsfamily.restafinder.data.DataRepositoryImpl
+import com.antsfamily.restafinder.data.local.LocalSource
 import com.antsfamily.restafinder.data.local.model.Coordinates
+import com.antsfamily.restafinder.data.remote.RemoteSource
 import com.antsfamily.restafinder.domain.entity.IdValue
 import com.antsfamily.restafinder.domain.entity.Restaurant
 import com.antsfamily.restafinder.domain.entity.RestaurantValue
 import com.antsfamily.restafinder.domain.entity.Restaurants
-import com.antsfamily.restafinder.domain.usecase.GetRestaurantsUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Before
 import org.junit.Rule
@@ -20,7 +22,7 @@ import org.mockito.junit.MockitoJUnitRunner
 
 @ExperimentalCoroutinesApi
 @RunWith(MockitoJUnitRunner::class)
-class GetRestaurantsUseCaseTest {
+class DataRepositoryTest {
 
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
@@ -29,41 +31,54 @@ class GetRestaurantsUseCaseTest {
     var testCoroutineRule = TestCoroutineRule()
 
     @Mock
-    private lateinit var repository: DataRepository
+    private lateinit var localSource: LocalSource
 
     @Mock
-    private lateinit var getRestaurantsUseCase: GetRestaurantsUseCase
+    private lateinit var remoteSource: RemoteSource
+
+    @Mock
+    private lateinit var repository: DataRepository
 
     @Before
     fun setup() {
-        repository = mock(DataRepository::class.java)
-        getRestaurantsUseCase = GetRestaurantsUseCase(repository)
+        localSource = mock(LocalSource::class.java)
+        remoteSource = mock(RemoteSource::class.java)
+        repository = DataRepositoryImpl(localSource, remoteSource)
     }
 
     @Test
     fun `get valid list of restaurants`() = testCoroutineRule.runBlockingTest {
-        `when`(repository.getRestaurants(MOCK_COORDINATES.latitude, MOCK_COORDINATES.longitude))
+        `when`(remoteSource.getRestaurants(MOCK_COORDINATES.latitude, MOCK_COORDINATES.longitude))
             .thenReturn(MOCK_RESTAURANTS_LIST)
-        val restaurants = getRestaurantsUseCase.run(MOCK_COORDINATES)
+        val restaurants = repository.getRestaurants(MOCK_COORDINATES)
         assert(restaurants.results == MOCK_RESTAURANTS_LIST.results)
     }
 
     @Test
     fun `get empty list of restaurants`() = testCoroutineRule.runBlockingTest {
-        `when`(repository.getRestaurants(MOCK_COORDINATES.latitude, MOCK_COORDINATES.longitude))
+        `when`(remoteSource.getRestaurants(MOCK_COORDINATES.latitude, MOCK_COORDINATES.longitude))
             .thenReturn(Restaurants(emptyList()))
-        val restaurants = getRestaurantsUseCase.run(MOCK_COORDINATES)
+        val restaurants = repository.getRestaurants(MOCK_COORDINATES)
         assert(restaurants.results.isEmpty())
     }
 
     @Test(expected = RuntimeException::class)
-    fun `get exception`() = testCoroutineRule.runBlockingTest {
-        `when`(repository.getRestaurants(MOCK_COORDINATES.latitude, MOCK_COORDINATES.longitude))
+    fun `get remote exception`() = testCoroutineRule.runBlockingTest {
+        `when`(remoteSource.getRestaurants(MOCK_COORDINATES.latitude, MOCK_COORDINATES.longitude))
             .thenThrow(MOCK_EXCEPTION)
-        getRestaurantsUseCase.run(MOCK_COORDINATES)
+        repository.getRestaurants(MOCK_COORDINATES)
+    }
+
+    @Test
+    fun `get favourite restaurants IDs`() = testCoroutineRule.runBlockingTest {
+        `when`(localSource.getFavouriteRestaurantIds())
+            .thenReturn(MOCK_FAVOURITE_RESTAURANT_IDS)
+        val ids = repository.getFavouriteRestaurantIds()
+        assert(ids.size == 2)
     }
 
     companion object {
+        private val MOCK_FAVOURITE_RESTAURANT_IDS = listOf("1", "2")
         private val MOCK_RESTAURANTS_LIST = Restaurants(
             results = listOf(
                 Restaurant(

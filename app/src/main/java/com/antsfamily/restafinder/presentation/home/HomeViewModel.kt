@@ -3,14 +3,15 @@ package com.antsfamily.restafinder.presentation.home
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.antsfamily.restafinder.data.DataRepository
+import com.antsfamily.restafinder.data.local.CoordinatesProvider
+import com.antsfamily.restafinder.data.local.DataFetchingTimer
 import com.antsfamily.restafinder.data.local.model.Coordinates
-import com.antsfamily.restafinder.presentation.home.model.RestaurantItem
-import com.antsfamily.restafinder.domain.entity.Restaurant
 import com.antsfamily.restafinder.domain.entity.Restaurants
-import com.antsfamily.restafinder.domain.usecase.*
 import com.antsfamily.restafinder.presentation.Event
 import com.antsfamily.restafinder.presentation.StatefulViewModel
 import com.antsfamily.restafinder.presentation.TextResource
+import com.antsfamily.restafinder.presentation.home.model.RestaurantItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
@@ -21,10 +22,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getCoordinatesUseCase: GetCoordinatesUseCase,
-    private val getRestaurantsUseCase: GetRestaurantsUseCase,
-    private val getFavouriteRestaurantsIdsUseCase: GetFavouriteRestaurantsIdsUseCase,
-    private val setFavouriteRestaurantsIdsUseCase: SetFavouriteRestaurantsIdsUseCase,
+    private val coordinatesProvider: CoordinatesProvider,
+    private val repository: DataRepository,
     private val timer: DataFetchingTimer
 ) : StatefulViewModel<HomeViewModel.State>(State()) {
 
@@ -102,39 +101,36 @@ class HomeViewModel @Inject constructor(
         _showSnackBar.postValue(Event(TextResource.RESTAURANT_REMOVE_FROM_FAVOURITES))
     }
 
-    private fun getFavouriteRestaurantsIds() {
-        getFavouriteRestaurantsIdsUseCase(Unit, {
-            favouriteRestaurantsIds = it
-        }, {
+    private fun getFavouriteRestaurantsIds() = viewModelScope.launch {
+        try {
+            favouriteRestaurantsIds = repository.getFavouriteRestaurantIds()
+        } catch (e: java.lang.Exception) {
             // no-op
-        })
+        }
     }
 
-    private fun setFavouriteRestaurantsIds() {
-        setFavouriteRestaurantsIdsUseCase(favouriteRestaurantsIds, {
+    private fun setFavouriteRestaurantsIds() = viewModelScope.launch {
+        try {
+            repository.setFavouriteRestaurantIds(favouriteRestaurantsIds)
+        } catch (e: java.lang.Exception) {
             // no-op
-        }, {
-            // no-op
-        })
+        }
     }
 
     private fun getCoordinates() {
-        getCoordinatesUseCase(
-            params = Unit,
-            onResult = {
-                coordinates = it
-                getRestaurants(it)
-            },
-            onError = ::handleErrorResult
-        )
+        coordinatesProvider.getCoordinates().let {
+            coordinates = it
+            getRestaurants(it)
+        }
     }
 
-    private fun getRestaurants(coordinates: Coordinates) {
-        getRestaurantsUseCase(
-            params = coordinates,
-            onResult = ::handleGetRestaurantsSuccessResult,
-            onError = ::handleErrorResult
-        )
+    private fun getRestaurants(coordinates: Coordinates) = viewModelScope.launch {
+        try {
+            val result = repository.getRestaurants(coordinates)
+            handleGetRestaurantsSuccessResult(result)
+        } catch (e: Exception) {
+            handleErrorResult(e)
+        }
     }
 
     private fun handleGetRestaurantsSuccessResult(result: Restaurants) {
@@ -143,7 +139,7 @@ class HomeViewModel @Inject constructor(
                 isStartLoadingVisible = false,
                 isFetchLoadingVisible = false,
                 isRestaurantsVisible = true,
-                restaurants = getRestaurantItems(result.results),
+                restaurants = getRestaurantItems(result),
                 isErrorVisible = false
             )
         }
@@ -153,8 +149,8 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun getRestaurantItems(data: List<Restaurant>): List<RestaurantItem> =
-        data.take(RESTAURANTS_LIST_SIZE).map {
+    private fun getRestaurantItems(data: Restaurants): List<RestaurantItem> =
+        data.results.take(RESTAURANTS_LIST_SIZE).map {
             RestaurantItem(
                 id = it.id.id,
                 address = it.address,
