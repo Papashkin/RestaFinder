@@ -33,6 +33,7 @@ class HomeViewModel @Inject constructor(
         val restaurants: List<RestaurantItem> = emptyList(),
         val isRestaurantsVisible: Boolean = false,
         val isFetchLoadingVisible: Boolean = false,
+        val isNetworkConnectionBannerVisible: Boolean = false,
     )
 
     private val _showSnackBar = MutableLiveData<Event<TextResource>>()
@@ -43,6 +44,7 @@ class HomeViewModel @Inject constructor(
     private var timerJob: Job? = null
     private var isTimerStarted: Boolean = false
     private var favouriteRestaurantsIds: List<String> = emptyList()
+    private var isNetworkAvailable: Boolean = true
 
     private val isDataAlreadyReceived: Boolean
         get() = state.value?.restaurants?.isEmpty() == false
@@ -62,11 +64,27 @@ class HomeViewModel @Inject constructor(
         setFavouriteRestaurantsIds()
     }
 
+    fun onNetworkAvailable() {
+        isNetworkAvailable = true
+        hideNetworkConnectionBanner()
+    }
+
+    fun onNetworkLost() {
+        isNetworkAvailable = false
+        if (isDataAlreadyReceived) {
+            showNetworkConnectionBanner()
+        }
+    }
+
     fun onRetryButtonClick() {
         coordinates?.let {
             showStartLoading()
             getRestaurants(it)
         }
+    }
+
+    fun onErrorBannerCloseButtonClick() {
+        hideNetworkConnectionBanner()
     }
 
     fun onFavouriteIconClick(item: RestaurantItem) {
@@ -177,10 +195,16 @@ class HomeViewModel @Inject constructor(
             timer.run(DataFetchingTimer.Params(DELAY_SECONDS, INIT_DELAY_SECONDS))
                 .cancellable()
                 .collect {
-                    viewModelScope.ensureActive()
-                    showFetchLoading()
-                    getCoordinates()
+                    ensureActive()
+                    submitDataFetching()
                 }
+        }
+    }
+
+    private fun submitDataFetching() {
+        if (isNetworkAvailable) {
+            showFetchLoading()
+            getCoordinates()
         }
     }
 
@@ -197,6 +221,14 @@ class HomeViewModel @Inject constructor(
 
     private fun showFetchLoading() {
         changeState { it.copy(isFetchLoadingVisible = true) }
+    }
+
+    private fun showNetworkConnectionBanner() {
+        postChangeState { it.copy(isNetworkConnectionBannerVisible = true) }
+    }
+
+    private fun hideNetworkConnectionBanner() {
+        postChangeState { it.copy(isNetworkConnectionBannerVisible = false) }
     }
 
     companion object {

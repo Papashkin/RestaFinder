@@ -19,6 +19,10 @@
         <item name="android:textSize">@dimen/text_size_body2</item>
     </style>
 
+    <style name="TextAppearance.Body2.Bold">
+        <item name="android:textStyle">bold</item>
+    </style>
+
     <style name="TextAppearance.Body4">
         <item name="android:textSize">@dimen/text_size_body4</item>
     </style>
