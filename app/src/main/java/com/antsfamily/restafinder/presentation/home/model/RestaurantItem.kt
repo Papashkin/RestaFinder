@@ -1,4 +1,4 @@
-package com.antsfamily.restafinder.data.local.model
+package com.antsfamily.restafinder.presentation.home.model
 
 data class RestaurantItem(
     val id: String,

@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import coil.transform.RoundedCornersTransformation
 import com.antsfamily.restafinder.R
-import com.antsfamily.restafinder.data.local.model.RestaurantItem
+import com.antsfamily.restafinder.presentation.home.model.RestaurantItem
 import com.antsfamily.restafinder.databinding.ItemRestaurantBinding
 
 class RestaurantsAdapter :

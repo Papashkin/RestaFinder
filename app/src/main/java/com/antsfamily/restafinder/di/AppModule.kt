@@ -1,11 +1,14 @@
 package com.antsfamily.restafinder.di
 
+import android.content.Context
+import com.antsfamily.restafinder.data.local.SharedPrefs
 import com.antsfamily.restafinder.domain.usecase.DataFetchingTimer
-import com.antsfamily.restafinder.remote.ApiConfig
-import com.antsfamily.restafinder.remote.RestaurantService
+import com.antsfamily.restafinder.data.remote.ApiConfig
+import com.antsfamily.restafinder.data.remote.RestaurantService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -35,4 +38,9 @@ class AppModule {
     @Provides
     @Singleton
     fun provideDataFetchingTimer(): DataFetchingTimer = DataFetchingTimer()
+
+    @Singleton
+    @Provides
+    fun provideSharedPreferences(@ApplicationContext context: Context): SharedPrefs =
+        SharedPrefs(context)
 }

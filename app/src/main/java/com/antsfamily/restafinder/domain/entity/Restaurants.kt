@@ -1,6 +1,10 @@
-package com.antsfamily.restafinder.data.remote.model
+package com.antsfamily.restafinder.domain.entity
 
 import com.google.gson.annotations.SerializedName
+
+data class Restaurants(
+    val results: List<Restaurant>
+)
 
 data class Restaurant(
     val id: IdValue,

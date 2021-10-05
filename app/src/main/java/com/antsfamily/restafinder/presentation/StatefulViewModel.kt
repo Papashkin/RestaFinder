@@ -13,8 +13,4 @@ open class StatefulViewModel<State>(private val initialState: State) : ViewModel
     protected fun changeState(changeState: (currentState: State) -> State) {
         _state.value = changeState(_state.value ?: initialState)
     }
-
-    protected fun postChangeState(changeState: (currentState: State) -> State) {
-        _state.postValue(changeState(_state.value ?: initialState))
-    }
 }

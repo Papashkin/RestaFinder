@@ -1,6 +1,6 @@
-package com.antsfamily.restafinder.remote
+package com.antsfamily.restafinder.data.remote
 
-import com.antsfamily.restafinder.data.remote.model.RestaurantsList
+import com.antsfamily.restafinder.domain.entity.Restaurants
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -10,5 +10,5 @@ interface RestaurantService {
     suspend fun getRestaurants(
         @Query("lat") latitude: Double,
         @Query("lon") longitude: Double
-    ): RestaurantsList
+    ): Restaurants
 }
