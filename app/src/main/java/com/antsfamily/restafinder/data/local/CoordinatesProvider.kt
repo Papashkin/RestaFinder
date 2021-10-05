@@ -1,15 +1,48 @@
 package com.antsfamily.restafinder.data.local
 
 import com.antsfamily.restafinder.data.local.model.Coordinates
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import java.util.*
 
 class CoordinatesProvider {
 
-    fun getCoordinates(): Coordinates {
+    private var job: Job? = null
+
+    suspend fun run(
+        params: Params,
+        onCoordinatesReceived: (coordinates: Coordinates) -> Unit = {}
+    ) {
+        job = GlobalScope.launch(Dispatchers.Default) {
+            run(params.delay).collect {
+                onCoordinatesReceived(it)
+            }
+        }
+    }
+
+    fun cancel() {
+        job?.cancel()
+        job = null
+    }
+
+    private fun run(delay: Long) = flow {
+        while (true) {
+            emit(getCoordinates())
+            delay(delay)
+        }
+    }
+
+    private fun getCoordinates(): Coordinates {
         val coordinates = COORDINATES.first()
         Collections.rotate(COORDINATES, OFFSET)
         return coordinates
     }
+
+    data class Params(
+        val delay: Long,
+        val initialDelay: Long = 0,
+    )
 
     companion object {
         private const val OFFSET = -1

@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.antsfamily.restafinder.data.DataRepository
 import com.antsfamily.restafinder.data.local.CoordinatesProvider
-import com.antsfamily.restafinder.data.local.DataFetchingTimer
 import com.antsfamily.restafinder.data.local.model.Coordinates
 import com.antsfamily.restafinder.domain.entity.Restaurants
 import com.antsfamily.restafinder.presentation.Event
@@ -13,18 +12,13 @@ import com.antsfamily.restafinder.presentation.StatefulViewModel
 import com.antsfamily.restafinder.presentation.TextResource
 import com.antsfamily.restafinder.presentation.home.model.RestaurantItem
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.cancellable
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val coordinatesProvider: CoordinatesProvider,
-    private val repository: DataRepository,
-    private val timer: DataFetchingTimer
+    private val repository: DataRepository
 ) : StatefulViewModel<HomeViewModel.State>(State()) {
 
     data class State(
@@ -41,10 +35,8 @@ class HomeViewModel @Inject constructor(
         get() = _showSnackBar
 
     private var coordinates: Coordinates? = null
-    private var timerJob: Job? = null
-    private var isTimerStarted: Boolean = false
     private var favouriteRestaurantsIds: List<String> = emptyList()
-    private var isNetworkAvailable: Boolean = true
+    private var isCoordinatesProviderActive: Boolean = false
 
     private val isDataAlreadyReceived: Boolean
         get() = state.value?.restaurants?.isEmpty() == false
@@ -54,23 +46,29 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onResume() {
-        getCoordinates()
+        if (!isCoordinatesProviderActive) {
+            isCoordinatesProviderActive = true
+            getCoordinates()
+        }
     }
 
     fun onPause() {
-        timerJob?.cancel()
-        timerJob = null
-        isTimerStarted = false
+        coordinatesProvider.cancel()
+        isCoordinatesProviderActive = false
         setFavouriteRestaurantsIds()
     }
 
     fun onNetworkAvailable() {
-        isNetworkAvailable = true
         hideNetworkConnectionBanner()
+        if (!isCoordinatesProviderActive) {
+            getCoordinates()
+            isCoordinatesProviderActive = true
+        }
     }
 
     fun onNetworkLost() {
-        isNetworkAvailable = false
+        coordinatesProvider.cancel()
+        isCoordinatesProviderActive = false
         if (isDataAlreadyReceived) {
             showNetworkConnectionBanner()
         }
@@ -122,7 +120,7 @@ class HomeViewModel @Inject constructor(
     private fun getFavouriteRestaurantsIds() = viewModelScope.launch {
         try {
             favouriteRestaurantsIds = repository.getFavouriteRestaurantIds()
-        } catch (e: java.lang.Exception) {
+        } catch (e: Exception) {
             // no-op
         }
     }
@@ -130,13 +128,13 @@ class HomeViewModel @Inject constructor(
     private fun setFavouriteRestaurantsIds() = viewModelScope.launch {
         try {
             repository.setFavouriteRestaurantIds(favouriteRestaurantsIds)
-        } catch (e: java.lang.Exception) {
+        } catch (e: Exception) {
             // no-op
         }
     }
 
-    private fun getCoordinates() {
-        coordinatesProvider.getCoordinates().let {
+    private fun getCoordinates() = viewModelScope.launch {
+        coordinatesProvider.run(CoordinatesProvider.Params(DELAY_SECONDS)) {
             coordinates = it
             getRestaurants(it)
         }
@@ -144,10 +142,11 @@ class HomeViewModel @Inject constructor(
 
     private fun getRestaurants(coordinates: Coordinates) = viewModelScope.launch {
         try {
+            if (isDataAlreadyReceived) showFetchLoading()
             val result = repository.getRestaurants(coordinates)
             handleGetRestaurantsSuccessResult(result)
         } catch (e: Exception) {
-            handleErrorResult(e)
+            handleErrorResult()
         }
     }
 
@@ -160,10 +159,6 @@ class HomeViewModel @Inject constructor(
                 restaurants = getRestaurantItems(result),
                 isErrorVisible = false
             )
-        }
-        if (!isTimerStarted) {
-            launchFetchingTimer()
-            isTimerStarted = true
         }
     }
 
@@ -179,7 +174,7 @@ class HomeViewModel @Inject constructor(
             )
         }
 
-    private fun handleErrorResult(exception: Exception) {
+    private fun handleErrorResult() {
         changeState {
             it.copy(
                 isErrorVisible = !isDataAlreadyReceived,
@@ -187,24 +182,6 @@ class HomeViewModel @Inject constructor(
                 isFetchLoadingVisible = false,
                 isRestaurantsVisible = isDataAlreadyReceived,
             )
-        }
-    }
-
-    private fun launchFetchingTimer() {
-        timerJob = viewModelScope.launch {
-            timer.run(DataFetchingTimer.Params(DELAY_SECONDS, INIT_DELAY_SECONDS))
-                .cancellable()
-                .collect {
-                    ensureActive()
-                    submitDataFetching()
-                }
-        }
-    }
-
-    private fun submitDataFetching() {
-        if (isNetworkAvailable) {
-            showFetchLoading()
-            getCoordinates()
         }
     }
 
@@ -234,6 +211,5 @@ class HomeViewModel @Inject constructor(
     companion object {
         private const val RESTAURANTS_LIST_SIZE = 15
         private const val DELAY_SECONDS = 10000L
-        private const val INIT_DELAY_SECONDS = 10000L
     }
 }
