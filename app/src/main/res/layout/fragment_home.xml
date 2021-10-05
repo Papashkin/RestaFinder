@@ -7,14 +7,19 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent">
+
+        <include
+            android:id="@+id/error_banner"
+            layout="@layout/view_network_connection_banner" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/restaurants_rv"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/error_banner"
             tools:itemCount="16"
             tools:listitem="@layout/item_restaurant" />
 

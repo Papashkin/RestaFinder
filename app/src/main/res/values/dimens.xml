@@ -6,11 +6,18 @@
     <dimen name="padding_large">24dp</dimen>
     <dimen name="padding_xlarge">32dp</dimen>
 
+    <!-- General elevation -->
+    <dimen name="general_elevation">2dp</dimen>
+
     <!-- General text size -->
     <dimen name="text_size_title">18sp</dimen>
     <dimen name="text_size_body1">16sp</dimen>
     <dimen name="text_size_body2">14sp</dimen>
+    <dimen name="text_size_body3">12sp</dimen>
     <dimen name="text_size_body4">10sp</dimen>
+
+    <!-- General icon size -->
+    <dimen name="general_icon_size">24dp</dimen>
 
     <!-- Restaurant item card -->
     <dimen name="restaurant_image_size">64dp</dimen>

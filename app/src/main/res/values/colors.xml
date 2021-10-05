@@ -10,4 +10,5 @@
 
     <color name="wolt">#55C0E4</color>
     <color name="gray">#E1E5EA</color>
+    <color name="error">#FF5C58</color>
 </resources>

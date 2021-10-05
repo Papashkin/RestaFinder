@@ -1,5 +1,8 @@
 package com.antsfamily.restafinder.ui.home
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
 import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
@@ -25,6 +28,21 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private var snackbar: Snackbar? = null
 
+    private lateinit var connectivityManager: ConnectivityManager
+
+    private val networkCallback: ConnectivityManager.NetworkCallback =
+        object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                super.onAvailable(network)
+                viewModel.onNetworkAvailable()
+            }
+
+            override fun onLost(network: Network) {
+                super.onLost(network)
+                viewModel.onNetworkLost()
+            }
+        }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         with(FragmentHomeBinding.bind(view)) {
@@ -32,6 +50,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             observeEvents(this)
             bindInteractions(this)
         }
+        setUpConnectivityManager()
     }
 
     override fun onResume() {
@@ -41,6 +60,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     override fun onPause() {
         super.onPause()
+        connectivityManager.unregisterNetworkCallback(networkCallback)
         viewModel.onPause()
     }
 
@@ -56,6 +76,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 .observe(viewLifecycleOwner) { restaurantsRv.isVisible = it }
             viewModel.state.mapDistinct { it.restaurants }
                 .observe(viewLifecycleOwner) { adapter.submitList(it) }
+            viewModel.state.mapDistinct { it.isNetworkConnectionBannerVisible }
+                .observe(viewLifecycleOwner) { errorBanner.container.isVisible = it }
         }
     }
 
@@ -71,7 +93,14 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             restaurantsRv.adapter = adapter.apply {
                 setOnFavouriteIconClickListener { viewModel.onFavouriteIconClick(it) }
             }
+            errorBanner.closeIv.setOnClickListener { viewModel.onErrorBannerCloseButtonClick() }
         }
+    }
+
+    private fun setUpConnectivityManager() {
+        connectivityManager =
+            requireActivity().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        connectivityManager.registerDefaultNetworkCallback(networkCallback)
     }
 
     private fun showSnackbar(view: View, text: TextResource) {

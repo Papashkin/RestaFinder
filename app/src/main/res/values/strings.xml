@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">RestaFinder</string>
 
+    <string name="no_internet_connection">No internet connection</string>
+
     <!-- Fetch data loading view -->
     <string name="home_fetch_loading_text">Data fetching. Please wait…</string>
 
